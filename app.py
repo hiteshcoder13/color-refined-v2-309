@@ -10,6 +10,7 @@ import timm
 from PIL import Image
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+from cmd_maapping import resolve_family_name
 
 # ============================================================================
 # CONFIG
@@ -250,7 +251,7 @@ for file_idx, uploaded_file in enumerate(uploaded_files, 1):
         # Get top 5 predictions
         probs = F.softmax(logits, dim=-1)[0].cpu().numpy()
         top5_indices = np.argsort(probs)[::-1][:5]
-        top5_families = [family_names[idx] for idx in top5_indices]
+        top5_families = [resolve_family_name(family_names[idx]) for idx in top5_indices]
         
         # Display results
         with col2:
@@ -258,17 +259,6 @@ for file_idx, uploaded_file in enumerate(uploaded_files, 1):
             for rank, family in enumerate(top5_families, 1):
                 # Display without confidence scores as requested
                 st.markdown(f"**{rank}. {family}**")
-            
-            # Show sample images from top family (optional)
-            if st.checkbox("Show more details", key=f"details_{file_idx}"):
-                st.json({
-                    "Filename": uploaded_file.name,
-                    "Top Family": top5_families[0],
-                    "Image Size": img_array.shape,
-                    "Model": "DINOv2-small + LAB Color Fusion",
-                    "Embedding Dim": 358,
-                    "Total Families": len(family_names),
-                })
         
         st.markdown("")
     
