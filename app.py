@@ -251,14 +251,16 @@ for file_idx, uploaded_file in enumerate(uploaded_files, 1):
         # Get top 5 predictions
         probs = F.softmax(logits, dim=-1)[0].cpu().numpy()
         top5_indices = np.argsort(probs)[::-1][:5]
-        top5_families = [resolve_family_name(family_names[idx]) for idx in top5_indices]
+        top5_predictions = [
+            (resolve_family_name(family_names[idx]), probs[idx])
+            for idx in top5_indices
+        ]
         
         # Display results
         with col2:
             st.markdown(f"#### Top 5 Predicted Stone Families")
-            for rank, family in enumerate(top5_families, 1):
-                # Display without confidence scores as requested
-                st.markdown(f"**{rank}. {family}**")
+            for rank, (family, score) in enumerate(top5_predictions, 1):
+                st.markdown(f"**{rank}. {family}** — Similarity score: `{score:.4f}`")
         
         st.markdown("")
     
