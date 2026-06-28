@@ -195,6 +195,10 @@ except Exception as e:
     st.error(f"Failed to load model: {e}")
     st.stop()
 
+display_family_names = {
+    idx: resolve_family_name(family_name)
+    for idx, family_name in enumerate(family_names)
+}
 # ============================================================================
 # IMAGE UPLOAD & PREDICTION
 # ============================================================================
@@ -222,15 +226,11 @@ for file_idx, uploaded_file in enumerate(uploaded_files, 1):
     
     # Load and display image
     try:
-        image = Image.open(uploaded_file)
+        image = Image.open(uploaded_file).convert("RGB")
         img_array = np.array(image)
         
         # Convert RGB to BGR for OpenCV
-        if len(img_array.shape) == 3 and img_array.shape[2] == 3:
-            img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-        else:
-            st.warning(f"⚠️  Image {file_idx}: Invalid format")
-            continue
+        img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
         
         # Display image
         with col1:
@@ -248,17 +248,18 @@ for file_idx, uploaded_file in enumerate(uploaded_files, 1):
         with torch.no_grad():
             _, logits, _, _ = model(img_tensor, lab_tensor)
         
-        # Get top 5 predictions
+        # Get top predictions from all trained stone families.
         probs = F.softmax(logits, dim=-1)[0].cpu().numpy()
-        top5_indices = np.argsort(probs)[::-1][:5]
+        top_k = min(5, len(family_names))
+        top_indices = np.argsort(probs)[::-1][:top_k]
         top5_predictions = [
-            (resolve_family_name(family_names[idx]), probs[idx])
-            for idx in top5_indices
+            (display_family_names[idx], probs[idx])
+            for idx in top_indices
         ]
         
         # Display results
         with col2:
-            st.markdown(f"#### Top 5 Predicted Stone Families")
+            st.markdown(f"#### Top {top_k} Predicted Stone Families")
             for rank, (family, score) in enumerate(top5_predictions, 1):
                 st.markdown(f"**{rank}. {family}** — Similarity score: `{score:.4f}`")
         

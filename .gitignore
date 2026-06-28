@@ -31,3 +31,12 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
+
+
+
+Screenshot from 2026-06-08 21-03-12.png
+app2.py
+app2_testing_sheet.xlsx
+batch_app2_testing_sheet.py
+color_similarity_top_families.csv
+color_similarity_top_families.py
